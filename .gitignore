@@ -1,0 +1,5 @@
+# Arquivos temporários da compilação
+build/
+
+# Dados de cada usuário (onde parou, letra, tema) - não vão para o GitHub
+dados/

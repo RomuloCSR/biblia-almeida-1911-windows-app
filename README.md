@@ -1,5 +1,29 @@
 # Bíblia Almeida ARC-1911 — Aplicativo para Windows
 
+## 📥 [BAIXAR PARA WINDOWS (clique aqui)](https://github.com/RomuloCSR/biblia-almeida-1911-windows-app/releases/latest/download/BibliaARC1911-Windows.zip)
+
+**Gratuito • Sem anúncios • Funciona sem internet • Sem instalar • Sempre a versão mais nova**
+
+Ou aponte a câmera do celular para o código abaixo e envie o link para o seu computador:
+
+<img src="docs/qr-baixar-windows.png" alt="QR code para baixar o aplicativo para Windows" width="200">
+
+**Usar em 3 passos:**
+
+1. Clique em **BAIXAR PARA WINDOWS** acima. O arquivo `BibliaARC1911-Windows.zip` será baixado.
+2. Na pasta *Downloads*, clique com o botão direito no arquivo → **Extrair Tudo...** → **Extrair**.
+3. Abra a pasta `BibliaARC1911` e dê **dois cliques** em **`Biblia.exe`**.
+
+> Se aparecer a tela azul "O Windows protegeu o computador", clique em **Mais informações** e depois em **Executar assim mesmo**.
+
+**Compartilhe com quem precisa:** copie e envie este link:
+
+```
+https://github.com/RomuloCSR/biblia-almeida-1911-windows-app/releases/latest/download/BibliaARC1911-Windows.zip
+```
+
+---
+
 Aplicativo **gratuito, leve e 100% offline** da Bíblia **Almeida 1911 (Domínio Público)**, com atualização ortográfica e gramatical realizada em **11/2026** para o Português do Brasil.
 
 Feito para quem quer ler a Palavra **sem distrações**: tela limpa, letra grande, botões simples. Se a pessoa sabe ler, ela sabe usar.
@@ -41,9 +65,9 @@ Feito para quem quer ler a Palavra **sem distrações**: tela limpa, letra grand
 
 ## Como baixar e usar (sem instalar nada)
 
-1. Clique no botão verde **`<> Code`** lá em cima e depois em **`Download ZIP`** (ou baixe pela aba **Releases** na lateral direita).
+1. Clique em **[BAIXAR PARA WINDOWS](https://github.com/RomuloCSR/biblia-almeida-1911-windows-app/releases/latest/download/BibliaARC1911-Windows.zip)**. O arquivo `BibliaARC1911-Windows.zip` é baixado direto, sempre na versão mais nova. (As versões anteriores ficam na aba **[Releases](https://github.com/RomuloCSR/biblia-almeida-1911-windows-app/releases)**.)
 2. Extraia a pasta baixada (clique com o botão direito no arquivo `.zip` -> **Extrair Tudo...**).
-3. Abra a pasta extraída e dê **dois cliques** no arquivo **`Biblia.exe`**.
+3. Abra a pasta `BibliaARC1911` e dê **dois cliques** no arquivo **`Biblia.exe`**.
 
 ### Levar no pendrive
 

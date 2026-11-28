@@ -1,6 +1,7 @@
-# empacotar.ps1 - gera build\BibliaARC1911-Windows.zip, pronto para anexar na release
+﻿# empacotar.ps1 - gera build\BibliaARC1911-Windows.zip, pronto para anexar na release
 # Uso: powershell -ExecutionPolicy Bypass -File empacotar.ps1
 # O nome do arquivo precisa ser sempre BibliaARC1911-Windows.zip (o link do README usa esse nome).
+# ATENÇÃO (28/11/2026): salve este arquivo sempre em UTF-8 com BOM. Sem o BOM o PowerShell 5 lê o texto como ANSI e os acentos do LEIA-ME.txt saem quebrados.
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

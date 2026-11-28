@@ -1,4 +1,4 @@
-# compilar.ps1 - gera o Biblia.exe nesta pasta
+﻿# compilar.ps1 - gera o Biblia.exe nesta pasta
 # Uso: powershell -ExecutionPolicy Bypass -File compilar.ps1
 
 $ErrorActionPreference = "Stop"

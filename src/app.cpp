@@ -261,7 +261,7 @@ static void compartilhar(const std::string &destino, const std::string &ref, con
     const size_t LIMITE = 1800; /* endereços muito longos não abrem em todo programa */
     std::string corpo = texto;
     if (url_codificar(corpo).size() > LIMITE)
-        corpo = ref + "\n\n(O texto completo foi copiado. Cole aqui com Ctrl+V.)\n\nBíblia Almeida ARC-1911 — https://github.com/RomuloCSR";
+        corpo = ref + "\n\n(O texto completo foi copiado. Cole aqui com Ctrl+V.)\n\nBíblia Almeida ARC-1911 — https://github.com/RomuloCSR\nDoação espontânea para a obra via PIX: 21980934118";
 
     std::string url;
     if (destino == "whatsapp") {

@@ -25,18 +25,18 @@
 #include "WebView2.h"
 
 /* ---------------------------------------------------------------------------
-- 1. MOTOR (o mesmo do terminal, ligado em C)
+- 1. KERNEL DA BÍBLIA (28/11/2026)
+-    Antes o app ligava o motor.biblia.c inteiro. Agora usa o kernel (kernel/),
+-    gerado a partir do mesmo motor: o texto sai igual, byte a byte, ~12x mais rápido.
+-    As regras continuam sendo escritas no motor/motor.biblia.c; o kernel é gerado dele.
+-    Livros: 0..38 = Antigo Testamento, 39..65 = Novo Testamento.
 - --------------------------------------------------------------------------- */
-extern "C" {
-    extern const char *pastas_at[39];
-    extern const char *pastas_nt[27];
-    extern const char *nomes_at[39];
-    extern const char *nomes_nt[27];
-    extern const int capitulos_at[39];
-    extern const int capitulos_nt[27];
+#include "../kernel/biblia_kernel.h"
 
-    void limpar_texto_verso(const char *origem, char *destino);
-    void atualizar_ortografia(char *texto);
+static int livro_global(int testamento, int livro) {
+    if (testamento == 1 && livro >= 0 && livro < 39) return livro;
+    if (testamento == 2 && livro >= 0 && livro < 27) return 39 + livro;
+    return -1;
 }
 
 #define MAX_LINHA_APP 8192
@@ -110,13 +110,36 @@ static std::wstring pasta_do_exe(void) {
 }
 
 /* ---------------------------------------------------------------------------
-- 4. LEITURA DE CAPÍTULO (mesma lógica do terminal e do Android)
+- 4. LEITURA DE CAPÍTULO (28/11/2026: feita pelo kernel, bk_capitulo)
+-    O kernel lê as linhas do .md como o terminal (tira BOM, ignora linha longa demais),
+-    limpa o Markdown e atualiza a ortografia. Aqui só montamos o JSON de cada item.
+-    Sem buffers static: pode ser chamado de qualquer thread.
 - --------------------------------------------------------------------------- */
+struct SaidaJson { std::string *s; bool primeiro; };
+
+static int item_json(void *ctx, int tipo, int numero, const char *texto, size_t tamanho_texto) {
+    (void)tamanho_texto;
+    SaidaJson *o = (SaidaJson *)ctx;
+    if (!o->primeiro) *o->s += ',';
+    if (tipo == BK_VERSO) {
+        *o->s += "{\"n\":";
+        json_texto(*o->s, std::to_string(numero).c_str());
+        *o->s += ",\"t\":";
+        json_texto(*o->s, texto);
+        *o->s += '}';
+    } else {
+        *o->s += "{\"s\":";
+        json_texto(*o->s, texto);
+        *o->s += '}';
+    }
+    o->primeiro = false;
+    return 0;
+}
+
 static std::string capitulo_json(int testamento, int livro, int capitulo) {
-    const char *pasta = nullptr;
-    int total = 0;
-    if (testamento == 1 && livro >= 0 && livro < 39) { pasta = pastas_at[livro]; total = capitulos_at[livro]; }
-    if (testamento == 2 && livro >= 0 && livro < 27) { pasta = pastas_nt[livro]; total = capitulos_nt[livro]; }
+    int g = livro_global(testamento, livro);
+    const char *pasta = g >= 0 ? bk_livro_pasta(g) : nullptr;
+    int total = g >= 0 ? bk_livro_capitulos(g) : 0;
 
     std::string saida = "{\"tipo\":\"capitulo\",\"t\":" + std::to_string(testamento) +
                         ",\"b\":" + std::to_string(livro) + ",\"c\":" + std::to_string(capitulo) + ",\"versos\":[";
@@ -138,53 +161,8 @@ static std::string capitulo_json(int testamento, int livro, int capitulo) {
         }
     }
 
-    static char linha[MAX_LINHA_APP];
-    static char texto_limpo[MAX_LINHA_APP];
-    bool primeiro = true;
-    const char *cursor = conteudo.c_str();
-
-    while (*cursor != '\0') {
-        const char *fim = strchr(cursor, '\n');
-        size_t len = fim ? (size_t)(fim - cursor) : strlen(cursor);
-        if (len >= MAX_LINHA_APP - 1) len = MAX_LINHA_APP - 2;
-        memcpy(linha, cursor, len);
-        linha[len] = '\0';
-        cursor = fim ? fim + 1 : cursor + len;
-
-        if (strncmp(linha, "---", 3) == 0) break;
-        if (linha[0] == '#' || linha[0] == '[') continue;
-
-        int idx = 0;
-        while (linha[idx] == '*' || linha[idx] == ' ') idx++;
-
-        if (linha[idx] >= '1' && linha[idx] <= '9') {
-            char num[20];
-            int v = 0;
-            while (linha[idx] >= '0' && linha[idx] <= '9' && v < 19) num[v++] = linha[idx++];
-            num[v] = '\0';
-            while (linha[idx] == '*' || linha[idx] == ' ') idx++;
-
-            limpar_texto_verso(&linha[idx], texto_limpo);
-            atualizar_ortografia(texto_limpo);
-
-            if (!primeiro) saida += ',';
-            saida += "{\"n\":";
-            json_texto(saida, num);
-            saida += ",\"t\":";
-            json_texto(saida, texto_limpo);
-            saida += '}';
-            primeiro = false;
-        } else if (strncmp(linha, "**", 2) == 0 && linha[idx] != '\0' && linha[idx] != '\r') {
-            limpar_texto_verso(&linha[idx], texto_limpo);
-            atualizar_ortografia(texto_limpo);
-
-            if (!primeiro) saida += ',';
-            saida += "{\"s\":";
-            json_texto(saida, texto_limpo);
-            saida += '}';
-            primeiro = false;
-        }
-    }
+    SaidaJson o = { &saida, true };
+    bk_capitulo(conteudo.data(), conteudo.size(), item_json, &o);
     saida += "]}";
     return saida;
 }
@@ -207,7 +185,7 @@ static Estado ler_estado(void) {
     if (e.t != 1 && e.t != 2) e.t = 1;
     int max_livro = e.t == 1 ? 39 : 27;
     if (e.b < 0 || e.b >= max_livro) e.b = 0;
-    int max_cap = e.t == 1 ? capitulos_at[e.b] : capitulos_nt[e.b];
+    int max_cap = bk_livro_capitulos(livro_global(e.t, e.b));
     if (e.c < 1 || e.c > max_cap) e.c = 1;
     if (e.fonte < 14 || e.fonte > 40) e.fonte = 20;
     if (strcmp(e.tema, "claro") && strcmp(e.tema, "sepia") && strcmp(e.tema, "escuro")) strcpy(e.tema, "claro");
@@ -226,12 +204,12 @@ static std::string init_json(void) {
     std::string s = "{\"tipo\":\"init\",\"at\":[";
     for (int i = 0; i < 39; i++) {
         if (i) s += ',';
-        s += "{\"n\":"; json_texto(s, nomes_at[i]); s += ",\"c\":" + std::to_string(capitulos_at[i]) + "}";
+        s += "{\"n\":"; json_texto(s, bk_livro_nome(i)); s += ",\"c\":" + std::to_string(bk_livro_capitulos(i)) + "}";
     }
     s += "],\"nt\":[";
     for (int i = 0; i < 27; i++) {
         if (i) s += ',';
-        s += "{\"n\":"; json_texto(s, nomes_nt[i]); s += ",\"c\":" + std::to_string(capitulos_nt[i]) + "}";
+        s += "{\"n\":"; json_texto(s, bk_livro_nome(39 + i)); s += ",\"c\":" + std::to_string(bk_livro_capitulos(39 + i)) + "}";
     }
     Estado e = ler_estado();
     s += "],\"estado\":{\"t\":" + std::to_string(e.t) + ",\"b\":" + std::to_string(e.b) +
